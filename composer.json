@@ -1,0 +1,16 @@
+{
+    "name": "dbrisinajumi/d2messages",
+    "description": "internal messaging",
+    "keywords": ["messages","yii"],
+    "type": "yii-extension",
+    "license": "MIT License",
+    "authors": [
+        {
+            "name": "Uldis Nelsons",
+            "email": "uldisnelsons@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.2"
+    }
+}
