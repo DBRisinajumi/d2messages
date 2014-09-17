@@ -49,8 +49,11 @@ class D2mmMessages extends BaseD2mmMessages
         }
         return new CActiveDataProvider(get_class($this), array(
             'criteria' => $this->searchCriteria($criteria),
+            'pagination' => array(
+                'pageSize' => 100,
+            ),
         ));
-    }
+    } 
 
     public function delete(){
         
