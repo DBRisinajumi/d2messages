@@ -239,7 +239,7 @@ class D2mailTabs extends CWidget {
     }
 
     public function run() {
-        $this->render($this->widgets_view_path . '.D2mailTabs', array(
+        $this->render($this->widgets_view_path . '.D2MailTabs', array(
             'write_mail' => $this->write_mail,
             'left_tabs' => $this->left_tabs,
         ));
