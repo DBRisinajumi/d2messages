@@ -9,6 +9,7 @@
  * @property string $d2mm_status
  * @property string $d2mm_model
  * @property string $d2mm_model_record_id
+ * @property string $d2mm_model_label
  * @property integer $d2mm_sender_pprs_id
  * @property string $d2mm_thread_id
  * @property integer $d2mm_read
@@ -31,6 +32,8 @@ abstract class BaseD2mmMessages extends CActiveRecord
     const D2MM_PRIORITY_LOW = 'LOW';
     const D2MM_STATUS_DRAFT = 'DRAFT';
     const D2MM_STATUS_SENT = 'SENT';
+    
+    var $enum_labels = false;  
 
     public static function model($className = __CLASS__)
     {
@@ -46,14 +49,15 @@ abstract class BaseD2mmMessages extends CActiveRecord
     {
         return array_merge(
             parent::rules(), array(
-                array('d2mm_priority, d2mm_status, d2mm_model, d2mm_model_record_id, d2mm_sender_pprs_id, d2mm_thread_id, d2mm_read, d2mm_ds, d2mm_created, d2mm_subject, d2mm_text', 'default', 'setOnEmpty' => true, 'value' => null),
+                array('d2mm_priority, d2mm_status, d2mm_model, d2mm_model_record_id, d2mm_model_label, d2mm_sender_pprs_id, d2mm_thread_id, d2mm_read, d2mm_ds, d2mm_created, d2mm_subject, d2mm_text', 'default', 'setOnEmpty' => true, 'value' => null),
                 array('d2mm_sender_pprs_id, d2mm_read, d2mm_ds', 'numerical', 'integerOnly' => true),
                 array('d2mm_priority', 'length', 'max' => 9),
                 array('d2mm_status', 'length', 'max' => 5),
                 array('d2mm_model', 'length', 'max' => 50),
                 array('d2mm_model_record_id, d2mm_thread_id', 'length', 'max' => 10),
+                array('d2mm_model_label', 'length', 'max' => 150),
                 array('d2mm_created, d2mm_subject, d2mm_text', 'safe'),
-                array('d2mm_id, d2mm_priority, d2mm_status, d2mm_model, d2mm_model_record_id, d2mm_sender_pprs_id, d2mm_thread_id, d2mm_read, d2mm_ds, d2mm_created, d2mm_subject, d2mm_text', 'safe', 'on' => 'search'),
+                array('d2mm_id, d2mm_priority, d2mm_status, d2mm_model, d2mm_model_record_id, d2mm_model_label, d2mm_sender_pprs_id, d2mm_thread_id, d2mm_read, d2mm_ds, d2mm_created, d2mm_subject, d2mm_text', 'safe', 'on' => 'search'),
             )
         );
     }
@@ -92,6 +96,7 @@ abstract class BaseD2mmMessages extends CActiveRecord
             'd2mm_status' => Yii::t('D2messagesModule.model', 'D2mm Status'),
             'd2mm_model' => Yii::t('D2messagesModule.model', 'D2mm Model'),
             'd2mm_model_record_id' => Yii::t('D2messagesModule.model', 'D2mm Model Record'),
+            'd2mm_model_label' => Yii::t('D2messagesModule.model', 'D2mm Model Label'),
             'd2mm_sender_pprs_id' => Yii::t('D2messagesModule.model', 'D2mm Sender Pprs'),
             'd2mm_thread_id' => Yii::t('D2messagesModule.model', 'D2mm Thread'),
             'd2mm_read' => Yii::t('D2messagesModule.model', 'D2mm Read'),
@@ -104,7 +109,10 @@ abstract class BaseD2mmMessages extends CActiveRecord
 
     public function enumLabels()
     {
-        return array(
+        if($this->enum_labels){
+            return $this->enum_labels;
+        }    
+        $this->enum_labels =  array(
            'd2mm_priority' => array(
                self::D2MM_PRIORITY_NORMAL => Yii::t('D2messagesModule.model', 'D2MM_PRIORITY_NORMAL'),
                self::D2MM_PRIORITY_IMPORTANT => Yii::t('D2messagesModule.model', 'D2MM_PRIORITY_IMPORTANT'),
@@ -115,6 +123,7 @@ abstract class BaseD2mmMessages extends CActiveRecord
                self::D2MM_STATUS_SENT => Yii::t('D2messagesModule.model', 'D2MM_STATUS_SENT'),
            ),
             );
+        return $this->enum_labels;
     }
 
     public function getEnumFieldLabels($column){
@@ -138,6 +147,10 @@ abstract class BaseD2mmMessages extends CActiveRecord
         return $aLabels[$column][$value];
     }
 
+    public function getEnumColumnLabel($column){
+        return $this->getEnumLabel($column,$this->$column);
+    }
+    
 
     public function searchCriteria($criteria = null)
     {
@@ -146,10 +159,11 @@ abstract class BaseD2mmMessages extends CActiveRecord
         }
 
         $criteria->compare('t.d2mm_id', $this->d2mm_id, true);
-        $criteria->compare('t.d2mm_priority', $this->d2mm_priority, true);
-        $criteria->compare('t.d2mm_status', $this->d2mm_status, true);
+        $criteria->compare('t.d2mm_priority', $this->d2mm_priority);
+        $criteria->compare('t.d2mm_status', $this->d2mm_status);
         $criteria->compare('t.d2mm_model', $this->d2mm_model, true);
         $criteria->compare('t.d2mm_model_record_id', $this->d2mm_model_record_id, true);
+        $criteria->compare('t.d2mm_model_label', $this->d2mm_model_label, true);
         $criteria->compare('t.d2mm_sender_pprs_id', $this->d2mm_sender_pprs_id);
         $criteria->compare('t.d2mm_thread_id', $this->d2mm_thread_id, true);
         $criteria->compare('t.d2mm_read', $this->d2mm_read);

@@ -99,20 +99,51 @@ class D2mmMessages extends BaseD2mmMessages
      * @todo normalizēt roles list atgriezšanu
      */
     public static function markMessageAsRead($d2mm_id){
+        
         $pprs_id = Yii::app()->getModule('user')->user()->profile->person_id;
         
-        //meklee peec personas
+        //find by person
         $d2mr = D2mrRecipient::model()->findByAttributes(array(
             'd2mr_d2mm_id' => $d2mm_id,
             'd2mr_recipient_pprs_id' =>$pprs_id,
         ));
+        
         if(!empty($d2mr)){
-            if(empty($d2mr->d2mr_read_datetime)){
-                $d2mr->d2mr_read_datetime = new CDbExpression('NOW()');
-                $d2mr->save();
-            }          
-            return;            
+            $roles = Authassignment::model()->getUserRoles($pprs_id);
+            $d2mr = D2mrRecipient::model()->findByAttributes(array(
+                'd2mr_d2mm_id' => $d2mm_id,
+                'd2mr_recipient_role' =>$roles,
+            ));
+            
         }
+        
+        //do not found recipient record
+        if(empty($d2mr)){
+           return; 
+        }
+
+        if(!empty($d2mr->d2mr_read_datetime)){
+           return; 
+        }
+        
+        //recipient is current person - only set read time
+        if($d2mr->d2mr_recipient_pprs_id == $pprs_id){
+            $d2mr->d2mr_read_datetime = new CDbExpression('NOW()');
+            $d2mr->save();
+            return;
+        }          
+
+        //recipient is role - set read time and person id
+        if(in_array($d2mr->d2mr_recipient_role,$roles)){
+            $d2mr->d2mr_recipient_pprs_id = $pprs_id;
+            $d2mr->d2mr_read_datetime = new CDbExpression('NOW()');
+            $d2mr->save();
+            return;
+        }          
+        
+        
+                 
+
         
         
         //get all user roles
@@ -159,9 +190,16 @@ class D2mmMessages extends BaseD2mmMessages
      * @return int d2mm_id
      */
     public static function createMessageForModel($model_name,$record_id){
+        
+        //get model recort item label
+        $m = new $model_name;
+        $m_item_lable = $m->findByPk($record_id)->itemLabel;
+        
+        //create record
         $model = new D2mmMessages();
         $model->d2mm_model_record_id = $record_id;
         $model->d2mm_model = $model_name;
+        $model->d2mm_model_label = $m_item_lable ;
         //var_dump($model);exit;
         $model->save(false);
         return $model->d2mm_id;
@@ -216,7 +254,53 @@ class D2mmMessages extends BaseD2mmMessages
         $model->save();
     }
     
-    
+    static public function createListCriteria($filter,$search = false){
+        
+        $criteria = new CDbCriteria;
+        $criteria->distinct=true;
+        
+        if(isset($filter['model_name']) && $filter['model_name']){
+            $criteria->compare('d2mm_model', $filter['model_name']);
+        }
+        if(isset($filter['model_id']) && $filter['model_id']){
+            $criteria->compare('d2mm_model_record_id', $filter['model_id']);
+        }    
+
+        if(isset($filter['rcp_role']) && $filter['rcp_role']){
+            $criteria->compare('d2mr_recipient_role', $filter['rcp_role']);
+            $criteria->join = " JOIN d2mr_recipient d2mr on d2mm_id = d2mr.d2mr_d2mm_id";
+        }    
+
+        if(isset($filter['rcp_pprs_id']) && $filter['rcp_pprs_id']){
+            $criteria->compare('d2mr_recipient_pprs_id', $filter['rcp_pprs_id']);
+            $criteria->join = " JOIN d2mr_recipient on d2mm_id = d2mr_d2mm_id";
+        }    
+        
+        $criteria->with[] = 'd2mmSenderPprs';
+        
+        //search
+        if($search){
+           $criteria_search = new CDbCriteria;
+
+            $model_name_reverse_translation = Yii::app()->getModule('d2messages')->getModelReverseTranslation();
+            
+            if(isset($model_name_reverse_translation[$search])){
+
+                $criteria_search->compare('d2mm_model',$search,false,'OR');
+            }
+            $criteria_search->compare('d2mm_model_label',$search,true,'OR');
+            $criteria_search->compare('d2mm_created',$search,true,'OR');
+            $criteria_search->compare('d2mm_subject',$search,true,'OR');
+            $criteria_search->compare('d2mm_text',$search,true,'OR');
+            $criteria_search->compare('pprs_first_name',$search,true,'OR');
+            $criteria_search->compare('pprs_second_name',$search,true,'OR');
+            
+            $criteria->mergeWith($criteria_search); 
+        }
+
+        return $criteria;
+        
+    }
     
     
 }
