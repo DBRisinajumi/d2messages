@@ -1,6 +1,3 @@
-d2messages
-----------
-
 /config/main.php
 ----------------
 
