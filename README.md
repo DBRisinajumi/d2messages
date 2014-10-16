@@ -1,8 +1,8 @@
 d2messages
-==========
+----------
 
 /config/main.php
-================
+----------------
 
         'd2messages' => array( 
             'class' => 'vendor.dbrisinajumi.d2messages.D2messagesModule',
@@ -19,7 +19,7 @@ d2messages
         
         
 Widget
-======
+------
 
     $this->widget('D2Mail', array(
         'rcp_role' => 'Accountant', //optional - filter messages by recepment roles 
@@ -56,14 +56,15 @@ Widget
         )
     );
     
-    translation
-    ===========
+translation
+-----------
     
-    model names translation in application/en/models.ph 
+model names translation in application/en/models.ph 
     
-    Widget views
-    ============
-    in app/main/config.php under parameters add 
+Widget views
+------------
+
+in app/main/config.php under parameters add 
     
         'theme_settings' => array(
             'widgets_view_path' => 'vendor.uldisn.ace.widgets.views',
