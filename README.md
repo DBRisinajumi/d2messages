@@ -4,7 +4,7 @@ d2messages
 /config/main.php
 ----------------
 
-add mdule: 
+add under module: 
 
         'd2messages' => array( 
             'class' => 'vendor.dbrisinajumi.d2messages.D2messagesModule',
@@ -25,6 +25,19 @@ under parameters add path to widgets views:
         'theme_settings' => array(
             'widgets_view_path' => 'vendor.uldisn.ace.widgets.views',
             ),    
+
+/config/consile.php
+----------------
+
+add under commandMap ==> migrate ==> modulePaths: 
+
+        'd2messages'              => 'vendor.dbrisinajumi.d2messages.migrations',  
+        
+migration
+---------
+run in app directory 
+
+        yiic.php migrate.php
             
         
         
