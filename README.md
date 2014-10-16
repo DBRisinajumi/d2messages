@@ -1,6 +1,10 @@
 /config/main.php
 ----------------
 
+Add under import:
+
+        'vendor.uldisn.ace.*', 
+
 add under module: 
 
         'd2messages' => array( 
