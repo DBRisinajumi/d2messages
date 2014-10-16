@@ -4,6 +4,8 @@ d2messages
 /config/main.php
 ----------------
 
+add mdule: 
+
         'd2messages' => array( 
             'class' => 'vendor.dbrisinajumi.d2messages.D2messagesModule',
             //link definiton in message to model record view
@@ -16,6 +18,14 @@ d2messages
                 )
             ),
         ),
+        
+
+under parameters add path to widgets views: 
+    
+        'theme_settings' => array(
+            'widgets_view_path' => 'vendor.uldisn.ace.widgets.views',
+            ),    
+            
         
         
 Widget
@@ -61,12 +71,4 @@ translation
     
 model names translation in application/en/models.ph 
     
-Widget views
-------------
 
-in app/main/config.php under parameters add 
-    
-        'theme_settings' => array(
-            'widgets_view_path' => 'vendor.uldisn.ace.widgets.views',
-            ),    
-    
