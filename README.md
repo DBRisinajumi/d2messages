@@ -1,3 +1,12 @@
+Require
+-------
+
+
+* Ace - Responsive Admin Template https://wrapbootstrap.com/theme/ace-responsive-admin-template-WB0B30DGR
+* https://github.com/uldisn/ace - Ace widget views
+
+
+
 /config/main.php
 ----------------
 
