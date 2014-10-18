@@ -55,8 +55,9 @@ Widget
 ------
 
     $this->widget('D2Mail', array(
-        'rcp_role' => 'Accountant', //optional - filter messages by recepment roles 
-        'model_name' => 'ccmp_companies '  //optional - filter messages by model name
+        'pprs_id' => Yii::app()->getModule('user')->user()->profile->person_id, //optional - filtr messages to person
+        'model_name' => get_class($model),  //optional filter messages by model name
+        'model_id' => $model->primaryKey,  //optional filter messages by model name        
         'write_mail' => false,       //can not write mail
         // or define label of button
         'write_mail' => array(
