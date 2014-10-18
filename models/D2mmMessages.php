@@ -65,120 +65,62 @@ class D2mmMessages extends BaseD2mmMessages
     }
     
     /**
-     * message count, where
-     *   status = SENT
+     * unread message count, where
      *   read_datetime = null
-     *   recipient = user_id or role in user_roles()
+     *   recipient = pprs_id
+     * @param int/false $pprs_id if false, get active user pprs_id
      * @return int
      */
-    public static function getCountUnreadMessages(){
+    public static function getCountUnreadMessages($pprs_id = false){
+        
+        if(!$pprs_id){
+            $pprs_id = Yii::app()->getModule('user')->user()->profile->person_id;
+        }
         $sql = "  
                 SELECT 
-                  COUNT(DISTINCT d2mr_d2mm_id) unread_messages 
+                  COUNT(DISTINCT d2mr_id) cnt
                 FROM
-                    d2mm_messages 
-                    INNER JOIN d2mr_recipient 
-                        ON d2mm_id = d2mr_d2mm_id 
-                        AND d2mm_status = 'SENT' 
-                  INNER JOIN authassignment aa 
-                    ON aa.userid = ".Yii::app()->user->id." 
-                    AND d2mr_recipient_role = aa.itemname 
-                    OR d2mr_recipient_pprs_id = ".Yii::app()->getModule('user')->user()->profile->person_id." 
-                WHERE d2mr_read_datetime IS NULL             
+                  d2mr_recipient 
+                WHERE d2mr_recipient_pprs_id = :pprs_id 
+                  AND d2mr_read_datetime IS NULL             
                  ";
-        
-         return Yii::app()->db->createCommand($sql)->queryScalar();
+        $rawData = Yii::app()->db->createCommand($sql);
+        $rawData->bindParam(":pprs_id",$pprs_id , PDO::PARAM_INT);                
+
+        return $rawData->queryScalar();
+
     }
 
     /**
      * mark message as read:
-     *  - find record by user person id or role
-     *  - registre read time and user
+     *  - find record by user person id 
+     *  - registre read time
      * @param int $d2mm_id  message id
      * @return none
-     * @todo normalizēt roles list atgriezšanu
      */
     public static function markMessageAsRead($d2mm_id){
         
+        
+        $user_id = Yii::app()->getModule('user')->user()->id;
         $pprs_id = Yii::app()->getModule('user')->user()->profile->person_id;
         
-        //find by person
+        //find recipient direct to person
         $d2mr = D2mrRecipient::model()->findByAttributes(array(
             'd2mr_d2mm_id' => $d2mm_id,
             'd2mr_recipient_pprs_id' =>$pprs_id,
         ));
-        
-        if(!empty($d2mr)){
-            $roles = Authassignment::model()->getUserRoles($pprs_id);
-            $d2mr = D2mrRecipient::model()->findByAttributes(array(
-                'd2mr_d2mm_id' => $d2mm_id,
-                'd2mr_recipient_role' =>$roles,
-            ));
-            
-        }
-        
-        //do not found recipient record
-        if(empty($d2mr)){
-           return; 
-        }
 
-        if(!empty($d2mr->d2mr_read_datetime)){
+        //message already are read
+        if($d2mr && !empty($d2mr->d2mr_read_datetime)){
            return; 
         }
         
         //recipient is current person - only set read time
-        if($d2mr->d2mr_recipient_pprs_id == $pprs_id){
+        if($d2mr &&  empty($d2mr->d2mr_read_datetime)){
             $d2mr->d2mr_read_datetime = new CDbExpression('NOW()');
             $d2mr->save();
             return;
-        }          
-
-        //recipient is role - set read time and person id
-        if(in_array($d2mr->d2mr_recipient_role,$roles)){
-            $d2mr->d2mr_recipient_pprs_id = $pprs_id;
-            $d2mr->d2mr_read_datetime = new CDbExpression('NOW()');
-            $d2mr->save();
-            return;
-        }          
-        
-        
-                 
-
-        
-        
-        //get all user roles
-        $sql = " 
-            SELECT 
-                a.name 
-            FROM
-                authassignment aa 
-                INNER JOIN authitem a 
-                  ON aa.itemname = a.name 
-            WHERE userid = ".Yii::app()->user->id." 
-                AND `type` = 2 
-            ";
-        $user_roles = Yii::app()->db->createCommand($sql)->queryAll();
-        $ur = array();
-        foreach($user_roles as $row){
-            $ur[] = $row['name'];
-        }
-        
-        
-        //meklee peec roles
-        $d2mr = D2mrRecipient::model()->findByAttributes(array(
-                'd2mr_d2mm_id' => $d2mm_id,
-                'd2mr_recipient_role' => $ur,
-        ));
-        
-        //mark as read
-        if(!empty($d2mr)){
-            if(empty($d2mr->d2mr_read_datetime)){
-                $d2mr->d2mr_recipient_pprs_id = $pprs_id;
-                $d2mr->d2mr_read_datetime = new CDbExpression('NOW()');
-                $d2mr->save();
-            }
-            return;
-        }
+        }         
         
         return;
     }
@@ -204,6 +146,20 @@ class D2mmMessages extends BaseD2mmMessages
         $model->save(false);
         return $model->d2mm_id;
     }
+
+    /**
+     * create new message and set model namea and model record id
+     * @param string $model_name
+     * @param int $record_id
+     * @return int d2mm_id
+     */
+    public static function createMessage(){
+        
+        //create record
+        $model = new D2mmMessages();
+        $model->save(false);
+        return $model->d2mm_id;
+    }
     
     /**
      * set reipient as user role
@@ -211,10 +167,47 @@ class D2mmMessages extends BaseD2mmMessages
      * @param string $role
      */
     public static function setRecipientRole($d2mm_id,$role){
+        
+        //get roles users
+        $pprs_list = Authassignment::getRoleUsers($role);
+        
+        foreach ($pprs_list as $pprs_id) {
+            $d2mr = new D2mrRecipient;
+            $d2mr->d2mr_d2mm_id = $d2mm_id;
+            $d2mr->d2mr_recipient_pprs_id = $pprs_id;
+            $d2mr->d2mr_recipient_role = $role;
+            $d2mr->save();            
+        }
+        
+
+    }
+
+    /**
+     * set reipient as person
+     * @param id $d2mm_id
+     * @param int $pprs_id
+     */
+    public static function setRecipientPerson($d2mm_id,$pprs_id){
         $d2mr = new D2mrRecipient;
         $d2mr->d2mr_d2mm_id = $d2mm_id;
-        $d2mr->d2mr_recipient_role = $role;
+        $d2mr->d2mr_recipient_pprs_id = $pprs_id;
         $d2mr->save();
+    }
+    
+    public static function setRecipientByName($d2mm_id,$recipient){
+
+
+        $roles = Yii::app()->getModule('user')->UserAdminRoles;
+        if(in_array($recipient, $roles)){
+            self::setRecipientRole($d2mm_id, $recipient);
+            return true;
+        }
+        
+        if($pprs_id = PprsPerson::getPersonsByFullName($recipient)){
+            self::setRecipientPerson($d2mm_id, $pprs_id);
+            return true;
+        }
+
     }
     
     /**
@@ -254,31 +247,42 @@ class D2mmMessages extends BaseD2mmMessages
         $model->save();
     }
     
+    /**
+     * create search criterias for message list
+     * @param array() $filter
+     * @param type $search
+     * @return \CDbCriteria
+     */
     static public function createListCriteria($filter,$search = false){
         
         $criteria = new CDbCriteria;
         $criteria->distinct=true;
         
         if(isset($filter['model_name']) && $filter['model_name']){
-            $criteria->compare('d2mm_model', $filter['model_name']);
+            $criteria->compare('d2mm_model', $filter['model_name'],false,'OR');
         }
+        
         if(isset($filter['model_id']) && $filter['model_id']){
-            $criteria->compare('d2mm_model_record_id', $filter['model_id']);
+            $criteria->compare('d2mm_model_record_id', $filter['model_id'],false,'OR');
         }    
 
-        if(isset($filter['rcp_role']) && $filter['rcp_role']){
-            $criteria->compare('d2mr_recipient_role', $filter['rcp_role']);
-            $criteria->join = " JOIN d2mr_recipient d2mr on d2mm_id = d2mr.d2mr_d2mm_id";
+        $criteria->join = " JOIN d2mr_recipient d2mr on d2mm_id = d2mr.d2mr_d2mm_id";
+
+        //for user inbox must be set rcp_pprs_id = user pprs_id
+        if(isset($filter['pprs_id']) && $filter['pprs_id']){
+            //all direct messages to user
+            $criteria->compare('d2mr_recipient_pprs_id', $filter['pprs_id'],false,'OR');
         }    
 
-        if(isset($filter['rcp_pprs_id']) && $filter['rcp_pprs_id']){
-            $criteria->compare('d2mr_recipient_pprs_id', $filter['rcp_pprs_id']);
-            $criteria->join = " JOIN d2mr_recipient on d2mm_id = d2mr_d2mm_id";
+        //for user sent box must be set _pprs_id = user pprs_id
+        if(isset($filter['to_pprs_id']) && $filter['to_pprs_id']){
+            //all direct messages to user
+            $criteria->compare('d2mm_sender_pprs_id', $filter['to_pprs_id'],false,'OR');
         }    
         
         $criteria->with[] = 'd2mmSenderPprs';
         
-        //search
+        //user search
         if($search){
            $criteria_search = new CDbCriteria;
 
@@ -298,6 +302,8 @@ class D2mmMessages extends BaseD2mmMessages
             $criteria->mergeWith($criteria_search); 
         }
 
+        $criteria->order = 'd2mm_created desc';
+        
         return $criteria;
         
     }

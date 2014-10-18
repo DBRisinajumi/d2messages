@@ -16,6 +16,18 @@ class D2messagesModule extends CWebModule
      * @var array 
      */
     public $path_to_models_records;
+    
+    /**
+     * message form options
+     * 
+     * array(
+                'recipient' => array(
+                    'person_user', //recipient can be user_person
+                    'roles', //recipient can be role
+                )
+     * @var false/array
+     */
+    public $write = false;
 	
     public function init()
 	{

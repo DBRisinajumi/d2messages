@@ -26,16 +26,79 @@ class D2mailTabs extends CWidget {
     public $message_list_ajax_url = false;
     public $widgets_view_path;
 
+    public $recipient = false;
+    public $recipient_names = false;
+    
     public function init() {
+        
+        //load module settings
+        $module_d2messages = Yii::app()->getModule('d2messages');
+        if ($module_d2messages->write) {
+            if (isset($module_d2messages->write['recipient'])) {
+                $this->recipient = $module_d2messages->write['recipient'];
+                
+            }
+        }
 
+        //load recipient names
+        if ($this->recipient && $this->recipient_names === false) {
+            $this->recipient_names = array();
+            if (in_array('person_user', $this->recipient)) {
+                $persons = PprsPerson::getPersonsUsers();
+                foreach ($persons as $row){
+                    $this->recipient_names[] = $row['full_name'];
+                }
+            }
+
+            if (in_array('roles', $this->recipient)) {
+                $roles = Yii::app()->getModule('user')->UserAdminRoles;
+                    $this->recipient_names = array_merge($this->recipient_names,$roles);
+            }        
+        }
         $this->initCss();
         $this->initJs();
     }
 
+    /**
+     * @todo move to uldisn/ace
+     */    
     public function initJs() {
 
 
         if (!empty($this->write_mail)) {
+            
+            $module_d2messages = Yii::app()->getModule('d2messages');
+            if ($module_d2messages->write 
+                    && isset($module_d2messages->write['recipient'])
+            ) {            
+
+                Yii::app()->clientScript->registerScript('D2mailTabsWriteFillRecipients', ' 
+                function define_recipients(){
+                    var tag_input = $("#form-field-recipient");
+                    if(! ( /msie\s*(8|7|6)/.test(navigator.userAgent.toLowerCase())) ) 
+                                    //tag_input.tag({placeholder:tag_input.attr("placeholder")});
+                    {
+                        tag_input.tag(
+                          {
+                            placeholder:tag_input.attr("placeholder"),
+                            source:["'.implode('","',$this->recipient_names).'"],
+                          }
+                        );
+                    }else {
+                        //display a textarea for old IE, because it doesnt support this plugin or another one I tried!
+                        tag_input.after(\'<textarea id="\'+tag_input.attr(\'id\')+\'" name="\'+tag_input.attr(\'name\')+\'" rows="3">\'+tag_input.val()+\'</textarea>\').remove();
+                        //$("#form-field-tags").autosize({append: "\n"});
+                    }            
+                }                
+                ');
+            }else{
+                //create empty funcion - no recipients
+                Yii::app()->clientScript->registerScript('D2mailTabsWriteFillRecipients', ' 
+                    function define_recipients(){
+                    }                
+                ');
+                
+            }
             Yii::app()->clientScript->registerScript('D2mailTabsWrite', ' 
             var yii_request_url = "' . Yii::app()->request->url . '"; 
             var prevTab = \'inbox\';
@@ -52,10 +115,21 @@ class D2mailTabs extends CWidget {
                             function( data ) {
                                 $("div.message-container").html(data);
                                 $(".message-container").find(".message-loading").remove();
+                                define_recipients();
                             }                    
                         )    
-                }else {
-                    if(prevTab == \'write\'){
+                }
+                if(currentTab == \'sent\') {
+                        var url = "/?r=d2messages/ajax/sent";
+                        $.get(
+                            url + "&add_data=" + list_add_data , 
+                            function( data ) {
+                                $("div.message-container").html(data);
+                                $(".message-container").find(".message-loading").remove();
+                            }                    
+                        );                             
+                }
+                if(prevTab == \'write\'){
                          var url = "' . $this->message_list_ajax_url . '";
                         $.get(
                             url + "&add_data=" + list_add_data , 
@@ -66,7 +140,7 @@ class D2mailTabs extends CWidget {
                         );                             
                     }
                     //add other tab reading
-                }
+                
                 prevTab = currentTab;
             });
 			//back to message list
@@ -88,14 +162,20 @@ class D2mailTabs extends CWidget {
             $(document).on(\'click\',\'.btn-send-message\', function(e) {
 				e.preventDefault();
                 $(".message-container").append(\'<div class="message-loading"><i class="icon-spin icon-spinner orange2 bigger-160"></i></div>\');
+                
+                //to url add additional data
                 var url = "' . $this->write_mail['form_url'] . '" 
                         + "&model_name=" + d2mail_model_name
                         + "&model_id=" + d2mail_model_id 
                         + "&add_data=" + list_add_data;
                 
+                //add recipients to post
+                var post_data = $("#id-message-form").serializeArray();
+                
+                //post form with recipients
                 $.post(
                     url, 
-                    $("#id-message-form").serialize(),
+                    post_data,
                     function( data ) {
                         $("div.message-container").html(data);
                         $(\'#inbox-tabs a[data-target="write"]\').parent().removeClass("active");  
@@ -162,8 +242,16 @@ class D2mailTabs extends CWidget {
             });
          
         ');
+        
+        //recipients
+        Yii::app()->clientScript->registerScript('D2mailFormRecipients', '
+
+                ');
     }
 
+    /**
+     * @todo move to uldisn/ace
+     */
     public function initCss() {
 
         /**
@@ -236,6 +324,11 @@ class D2mailTabs extends CWidget {
                 width: auto;
             }            
         ');
+        
+        Yii::app()->clientScript->registerCss('d2messages_form_recipient', ' 
+            .tags {width:100%  !important}
+ }
+        ');        
     }
 
     public function run() {

@@ -17,7 +17,7 @@ class AjaxController extends Controller {
         return array(
             array(
                 'allow',
-                'actions' => array('list','write','messageInline'),
+                'actions' => array('list','write','messageInline','sent'),
                 'roles' => array('D2messages.D2mmMessages.*'),
             ),
             array(
@@ -61,8 +61,39 @@ class AjaxController extends Controller {
         $message = Yii::app()->request->getPost('message');
 
         if (!empty($subject) || !empty($message)) {
-            $d2mm_id = D2mmMessages::createMessageForModel($model_name, $model_id);
-            D2mmMessages::setRecipientRole($d2mm_id, 'Gramatvedis');
+            if(!empty($model_name)){
+                $d2mm_id = D2mmMessages::createMessageForModel($model_name, $model_id);
+            }else{
+                $d2mm_id = D2mmMessages::createMessage();
+            }
+            
+            //process recipients
+            $recipients_csv = Yii::app()->request->getPost('recipient_list');
+            if(!empty($recipients_csv)){
+                $recipients = explode(',',$recipients_csv);
+                foreach($recipients as $r){
+                    var_dump($r);
+                    D2mmMessages::setRecipientByName($d2mm_id, trim($r));
+                }
+            }
+
+            //set default recipients
+            $module_d2messages = Yii::app()->getModule('d2messages');
+            if ($module_d2messages->write && isset($module_d2messages->write['default_recipient'])) {
+                $dr = $module_d2messages->write['default_recipient'];
+                if(isset($dr['person_user']) && $dr['person_user']){
+                    foreach($dr['person_user'] as $pprs_id){
+                        D2mmMessages::setRecipientPerson($d2mm_id,$pprs_id);
+                    }
+                }
+                if(isset($dr['role']) && $dr['role']){
+                    foreach($dr['role'] as $role){
+                        D2mmMessages::setRecipientRole($d2mm_id,$role);
+                    }
+                }
+
+            }              
+
             D2mmMessages::setSubject($d2mm_id, $subject);
             D2mmMessages::setText($d2mm_id, $message);
             D2mmMessages::send($d2mm_id);
@@ -79,8 +110,8 @@ class AjaxController extends Controller {
         } else {
             $view_path = Yii::app()->params['theme_settings']['widgets_view_path'];
             $this->widget('D2mailForm', array(
-                'send_label' => 'Saglabāt',
-                'recipient' => false,
+                //'send_label' => 'Saglabāt',
+                //'recipient' => false,
                 'widgets_view_path' => $view_path,   
             ));
         }
@@ -99,8 +130,35 @@ class AjaxController extends Controller {
 
         unset($add_data['model_name']);
         unset($add_data['model_id']);
-        unset($add_data['rcp_role']);
-        unset($add_data['rcp_pprs_id']);
+        unset($add_data['pprs_id']);
+        
+        $this->widget('D2mailList', array_merge(array(
+            'data_model' => 'D2mmMessages',
+            'search' => $search,
+            'criteria' => $criteria,
+            'widgets_view_path' => $view_path), $add_data)
+        );
+
+    }
+
+    /**
+     * show message list
+     * @param type $aobj_id
+     */
+    public function actionSent($add_data,$search = false) {
+        
+        $view_path = Yii::app()->params['theme_settings']['widgets_view_path'];
+
+        $add_data = json_decode($add_data, true);
+        
+        unset($add_data['pprs_id']);
+        $add_data['to_pprs_id'] = Yii::app()->getModule('user')->user()->profile->person_id;
+        
+        $criteria = D2mmMessages::createListCriteria($add_data,$search);
+
+        unset($add_data['model_name']);
+        unset($add_data['model_id']);
+        unset($add_data['to_pprs_id']);
         
         $this->widget('D2mailList', array_merge(array(
             'data_model' => 'D2mmMessages',

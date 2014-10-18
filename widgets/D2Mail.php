@@ -87,10 +87,12 @@ class D2mail extends CWidget {
      */
     private $_pages;
     
+    //filtering params
     public $model_name = false;
     public $model_id = false;
+    public $pprs_id = false;
+    
     public $rcp_role = false;
-    public $rcp_pprs_id = false;
     
     public $theme_settings = false;
     
@@ -118,7 +120,7 @@ class D2mail extends CWidget {
             'id' => 'd2mm_id',
             'model_name' => 'd2mm_model',
             'model_label' => 'd2mm_model_label',
-            'unread' => array('d2mrRecipients',0,'d2mr_read_datetime'),
+            //'unread' => array('d2mrRecipients',0,'d2mr_read_datetime'),
         );
         
         $this->theme_settings = Yii::app()->params['theme_settings'];
@@ -131,8 +133,7 @@ class D2mail extends CWidget {
             'widgets_view_path' => $this->theme_settings['widgets_view_path'],
             'model_name' => $this->model_name,
             'model_id' => $this->model_id,
-            'rcp_role' => $this->rcp_role,
-            'rcp_pprs_id' => $this->rcp_pprs_id,
+            'pprs_id' => $this->pprs_id,
         );
         
         Yii::app()->clientScript->registerScript('D2mailList', '
@@ -159,8 +160,7 @@ class D2mail extends CWidget {
             'criteria' => D2mmMessages::createListCriteria(array(            
                 'model_name' => $this->model_name,
                 'model_id' => $this->model_id,
-                'rcp_role' => $this->rcp_role,
-                'rcp_pprs_id' => $this->rcp_pprs_id,
+                'pprs_id' => $this->pprs_id,
                 )),
             'maping' => $this->maping, 
             'title_big' => $this->title_big,

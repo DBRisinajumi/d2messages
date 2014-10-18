@@ -106,9 +106,10 @@ class D2mailList extends CWidget {
      * @return type
      */
     private function getModelData() {
+        
+        $pprs_id = Yii::app()->getModule('user')->user()->profile->person_id;
+        
         $model = new $this->data_model;
-//        $data = $model->findAll($this->criteria);
-//        var_dump($data);exit;        
 
         $count = $model->count($this->criteria);
 
@@ -120,8 +121,24 @@ class D2mailList extends CWidget {
         //var_dump($data);exit;
         $messages = array();
         while ($row = array_shift($data)) {
-            $new_row = array();
+            $new_row = array(
+                'unread' => true,
+            );
+            
+            //check, if message is read
+            if(!empty($row['d2mrRecipients'])){
+                foreach($row['d2mrRecipients'] as $rcp){
+                    if($rcp['d2mr_recipient_pprs_id'] == $pprs_id
+                            && !empty($rcp['d2mr_read_datetime'])
+                    ){
+                        $new_row['unread'] = false;
+                        break;
+                    }
+                }
+            }
+            
             foreach ($this->maping as $to => $from) {
+                
                 if (!is_array($from)) {
                     $new_row[$to] = $row[$from];
                     continue;
@@ -142,7 +159,7 @@ class D2mailList extends CWidget {
 
             $messages[] = $new_row;
         }
-        //var_dump($messages);exit;
+
         return $messages;
     }
 
