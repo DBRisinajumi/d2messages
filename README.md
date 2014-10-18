@@ -95,3 +95,15 @@ translation
 model names translation in application/en/models.ph 
     
 
+menu item
+---------
+
+                        array(
+                            'visible' => Yii::app()->user->checkAccess('Gramatvedis'),
+                            'icon' => 'envelope white',
+                            'badge_type' => 'info',
+                            'badge_label' => D2mmMessages::getCountUnreadMessages(),
+                            'url' => array('/???/d2mmMessages'),
+                            'itemCssClass' => 'light-blue',
+
+                        ),
