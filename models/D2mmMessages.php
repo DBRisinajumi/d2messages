@@ -259,11 +259,11 @@ class D2mmMessages extends BaseD2mmMessages
         $criteria->distinct=true;
         
         if(isset($filter['model_name']) && $filter['model_name']){
-            $criteria->compare('d2mm_model', $filter['model_name'],false,'OR');
+            $criteria->compare('d2mm_model', $filter['model_name']);
         }
         
         if(isset($filter['model_id']) && $filter['model_id']){
-            $criteria->compare('d2mm_model_record_id', $filter['model_id'],false,'OR');
+            $criteria->compare('d2mm_model_record_id', $filter['model_id']);
         }    
 
         $criteria->join = " JOIN d2mr_recipient d2mr on d2mm_id = d2mr.d2mr_d2mm_id";
@@ -271,13 +271,13 @@ class D2mmMessages extends BaseD2mmMessages
         //for user inbox must be set rcp_pprs_id = user pprs_id
         if(isset($filter['pprs_id']) && $filter['pprs_id']){
             //all direct messages to user
-            $criteria->compare('d2mr_recipient_pprs_id', $filter['pprs_id'],false,'OR');
+            $criteria->compare('d2mr_recipient_pprs_id', $filter['pprs_id']);
         }    
 
         //for user sent box must be set _pprs_id = user pprs_id
         if(isset($filter['to_pprs_id']) && $filter['to_pprs_id']){
             //all direct messages to user
-            $criteria->compare('d2mm_sender_pprs_id', $filter['to_pprs_id'],false,'OR');
+            $criteria->compare('d2mm_sender_pprs_id', $filter['to_pprs_id']);
         }    
         
         $criteria->with[] = 'd2mmSenderPprs';
