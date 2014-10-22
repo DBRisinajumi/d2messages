@@ -27,7 +27,7 @@ class AjaxController extends Controller {
             ),
             array(
                 'allow',
-                'actions' => array('list'), // let the user view the grid
+                'actions' => array('list','messageInline'), 
                 'roles' => array('D2messages.D2mmMessages.View'),
             ),
             array(
@@ -175,20 +175,39 @@ class AjaxController extends Controller {
      */
     public function actionMessageInline($d2mm_id) {
         
-        if ($d2mm = D2mmMessages::model()->findByPk($d2mm_id)) {
-            D2mmMessages::markMessageAsRead($d2mm_id);
-            $view_path = Yii::app()->params['theme_settings']['widgets_view_path'];
-            $this->widget('D2mailShowInline', array(
-                'model_name' => $d2mm->d2mm_model,
-                'model_label' => $d2mm->d2mm_model_label,
-                'model_record_id' => $d2mm->d2mm_model_record_id,
-                'subject' => $d2mm->d2mm_subject,
-                'sender' => $d2mm->d2mmSenderPprs->itemLabel,
-                'message' => str_replace(PHP_EOL, '<br />', $d2mm->d2mm_text),
-                'created' => $d2mm->d2mm_created,
-                'widgets_view_path' => $view_path,
-            ));
+        $d2mm = D2mmMessages::model()->findByPk($d2mm_id);
+        if (!$d2mm){
+            throw new CHttpException(404, Yii::t('D2messagesModule.crud', 'The requested page does not exist.'));
         }
+        
+        //reader must be sender or recipient
+        if(!Yii::app()->user->checkAccess('D2messages.ReadAll')){
+            $pprs_id = Yii::app()->getModule('user')->user()->profile->person_id;
+            if($d2mm->d2mm_sender_pprs_id != $pprs_id){
+                $b = false;
+                foreach ($d2mm->d2mrRecipients as $d2mr) {
+                    $b = $b || ($d2mr->d2mr_recipient_pprs_id == $pprs_id);
+                }
+                if(!$b){
+                    throw new CHttpException(404, Yii::t('D2messagesModule.crud', 'The requested page does not exist.'));
+                }
+            }
+        }
+            
+        
+        D2mmMessages::markMessageAsRead($d2mm_id);
+        $view_path = Yii::app()->params['theme_settings']['widgets_view_path'];
+        $this->widget('D2mailShowInline', array(
+            'model_name' => $d2mm->d2mm_model,
+            'model_label' => $d2mm->d2mm_model_label,
+            'model_record_id' => $d2mm->d2mm_model_record_id,
+            'subject' => $d2mm->d2mm_subject,
+            'sender' => $d2mm->d2mmSenderPprs->itemLabel,
+            'message' => str_replace(PHP_EOL, '<br />', $d2mm->d2mm_text),
+            'created' => $d2mm->d2mm_created,
+            'widgets_view_path' => $view_path,
+        ));
+
     }
 
     public function loadModel($id) {

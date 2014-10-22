@@ -280,7 +280,16 @@ class D2mmMessages extends BaseD2mmMessages
             $criteria->compare('d2mm_sender_pprs_id', $filter['to_pprs_id']);
         }    
         
-        $criteria->with[] = 'd2mmSenderPprs';
+        //reader must be sender or recipient
+        if(!Yii::app()->user->checkAccess('D2messages.ReadAll')){
+            $pprs_id = Yii::app()->getModule('user')->user()->profile->person_id;
+            $criteria_pprs = new CDbCriteria;
+            $criteria_pprs->compare('d2mm_sender_pprs_id', $pprs_id,false,'OR');
+            $criteria_pprs->compare('d2mr_recipient_pprs_id', $pprs_id,false,'OR');
+            $criteria->mergeWith($criteria_pprs);
+        }    
+        
+        //$criteria->with[] = 'd2mmSenderPprs';
         
         //user search
         if($search){
