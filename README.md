@@ -21,14 +21,17 @@ add under module:
 
         'd2messages' => array( 
             'class' => 'vendor.dbrisinajumi.d2messages.D2messagesModule',
-            'recipient' => array(
-                    'person_user',  //all users
-                    'roles',        // all roles
-            ),
-            'default_recipient' => array(
-                  'person_user' => false,
-                  'role' => false,
-              ),                
+            'write' => array(
+                'recipient' => array(
+                        'person_user',  //all users
+                        'roles',        // all roles
+                ),
+                'default_recipient' => array(
+                      'person_user' => false,
+                      'role' => false,
+                ),            
+            ),    
+           
             //link definiton in message to model record view
             'path_to_models_records' => array(
                 '[model_name]' => array(
