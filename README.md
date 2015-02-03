@@ -36,7 +36,7 @@ under parameters add path to widgets views:
             'widgets_view_path' => 'vendor.uldisn.ace.widgets.views',
             ),    
 
-/config/consile.php
+/config/console.php
 ----------------
 
 add under commandMap ==> migrate ==> modulePaths: 
