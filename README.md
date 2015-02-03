@@ -12,12 +12,26 @@ Require
 
 Add under import:
 
-        'vendor.uldisn.ace.*', 
+        'vendor.uldisn.ace.*',
+        'vendor.dbrisinajumi.d2messages.*',          
+        'vendor.dbrisinajumi.d2messages.models.*',          
+        'vendor.dbrisinajumi.d2messages.widgets.*',        
 
 add under module: 
 
         'd2messages' => array( 
             'class' => 'vendor.dbrisinajumi.d2messages.D2messagesModule',
+            'write' => array(
+                'recipient' => array(
+                        'person_user',  //all users
+                        'roles',        // all roles
+                ),
+                'default_recipient' => array(
+                      'person_user' => false,
+                      'role' => false,
+                ),            
+            ),    
+           
             //link definiton in message to model record view
             'path_to_models_records' => array(
                 '[model_name]' => array(
@@ -36,7 +50,7 @@ under parameters add path to widgets views:
             'widgets_view_path' => 'vendor.uldisn.ace.widgets.views',
             ),    
 
-/config/consile.php
+/config/console.php
 ----------------
 
 add under commandMap ==> migrate ==> modulePaths: 
