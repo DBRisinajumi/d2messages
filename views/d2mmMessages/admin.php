@@ -15,7 +15,7 @@ $this->setPageTitle(
     </div>
 </div>
 
-<?
+<?php
 $this->widget('D2Mail', array(
     //'model_name' => get_class($model), //optional - filter messages by model name
     //'model_id' => $model->primaryKey,
