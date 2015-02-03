@@ -141,6 +141,18 @@ class D2mail extends CWidget {
              var d2mail_model_id = "'.$this->model_id.'";
              var d2mail_model_name = "'.$this->model_name.'";
         ');
+        $this->registerAssets();
+    }
+
+    public function registerAssets() {
+        $ace_path = Yii::app()->params['ace_assets'];
+        $asset_link = Yii::app()->assetManager->publish(
+                $ace_path, false, // hash by name
+                -1, // level
+                false); // forceCopy 
+        $cs = Yii::app()->getClientScript();
+        $cs->registerScriptFile($asset_link . '/js/chosen.jquery.min.js', CClientScript::POS_END);
+        $cs->registerScriptFile($asset_link . '/js/bootstrap-tag.min.js', CClientScript::POS_END);
     }
 
     public function run() {

@@ -107,18 +107,29 @@ Widget
 translation
 -----------
     
-model names translation in application/en/models.ph 
+model names translation in application/en/models.php 
     
+Acces rights
+---------------------
+Add to roles rights
+```
+
+INSERT INTO `authitemchild` (`parent`, `child`) VALUES ('[role]', 'D2messages.D2mmMessages.*'); 
+
+```
+
 
 menu item
 ---------
 
-                        array(
-                            'visible' => Yii::app()->user->checkAccess('Gramatvedis'),
-                            'icon' => 'envelope white',
-                            'badge_type' => 'info',
-                            'badge_label' => D2mmMessages::getCountUnreadMessages(),
-                            'url' => array('/???/d2mmMessages'),
-                            'itemCssClass' => 'light-blue',
+```
 
-                        ),
+                array(
+                    'visible' => Yii::app()->user->checkAccess('[role]'),
+                    'icon' => 'envelope white',
+                    'badge_type' => 'info',
+                    'badge_label' => D2mmMessages::getCountUnreadMessages(),
+                    'url' => array('/d2messages/d2mmMessages/admin'),
+                    'itemCssClass' => 'light-blue',
+                ),
+```
