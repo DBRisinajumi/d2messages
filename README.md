@@ -12,7 +12,10 @@ Require
 
 Add under import:
 
-        'vendor.uldisn.ace.*', 
+        'vendor.uldisn.ace.*',
+        'vendor.dbrisinajumi.d2messages.*',          
+        'vendor.dbrisinajumi.d2messages.models.*',          
+        'vendor.dbrisinajumi.d2messages.widgets.*',        
 
 add under module: 
 
