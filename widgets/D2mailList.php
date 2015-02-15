@@ -81,6 +81,7 @@ class D2mailList extends CWidget {
             'checkbox',
             'stared',
             'sender',
+            'recipients',
             'badge',
             'message_flags',
             'subject',

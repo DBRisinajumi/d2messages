@@ -117,7 +117,8 @@ class D2mailTabs extends CWidget {
                                 $(".message-container").find(".message-loading").remove();
                                 define_recipients();
                             }                    
-                        )    
+                        ) 
+                        return;
                 }
                 if(currentTab == \'sent\') {
                         var url = "/?r=d2messages/ajax/sent";
@@ -128,6 +129,7 @@ class D2mailTabs extends CWidget {
                                 $(".message-container").find(".message-loading").remove();
                             }                    
                         );                             
+                        return;
                 }
                 if(prevTab == \'write\'){
                          var url = "' . $this->message_list_ajax_url . '";
@@ -140,8 +142,8 @@ class D2mailTabs extends CWidget {
                         );                             
                     }
                     //add other tab reading
-                
-                prevTab = currentTab;
+                    prevTab = currentTab;
+                    return;
             });
 			//back to message list
             $(document).on(\'click\',\'#id-message-new-navbar .btn-back-message-list\', function(e) {

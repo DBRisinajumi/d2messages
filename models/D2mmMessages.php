@@ -23,6 +23,15 @@ class D2mmMessages extends BaseD2mmMessages
         return parent::getItemLabel();
     }
 
+    public function getRecipients()
+    {
+        $recipients = [];
+        foreach($this->d2mrRecipients as $d2mr){
+            $recipients[] = $d2mr->d2mrRecipientPprs->itemLabel;
+        }
+        return (string) implode('; ',$recipients);
+    }
+
     public function behaviors()
     {
         return array_merge(

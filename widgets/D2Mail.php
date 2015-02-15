@@ -112,16 +112,17 @@ class D2mail extends CWidget {
         }
         
         
-        $this->maping = array(
-            'sender' => array('d2mmSenderPprs', 'itemLabel'),
+        $this->maping = [
+            'sender' => ['d2mmSenderPprs', 'itemLabel'],
             'subject' => 'd2mm_subject',
             'summary' => 'd2mm_text',
             'time' => 'd2mm_created',
             'id' => 'd2mm_id',
             'model_name' => 'd2mm_model',
             'model_label' => 'd2mm_model_label',
+            'recipients' => 'recipients',
             //'unread' => array('d2mrRecipients',0,'d2mr_read_datetime'),
-        );
+        ];
         
         $this->theme_settings = Yii::app()->params['theme_settings'];
         
