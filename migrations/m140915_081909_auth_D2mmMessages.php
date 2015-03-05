@@ -18,16 +18,16 @@ class m140915_081909_auth_D2mmMessages extends CDbMigration
             INSERT INTO `AuthItem` (`name`, `type`, `description`, `bizrule`, `data`) VALUES('D2messages.Write','2','Write D2messages',NULL,'N;');   
             INSERT INTO `AuthItem` (`name`, `type`, `description`, `bizrule`, `data`) VALUES('D2messages.Delete','2','Delete D2messages',NULL,'N;'); 
             
-            INSERT INTO authitemchild VALUES ('D2messages.Read','D2messages.D2mmMessages.Menu');
-            INSERT INTO authitemchild VALUES ('D2messages.Read','D2messages.D2mmMessages.View');
+            INSERT INTO AuthItemChild VALUES ('D2messages.Read','D2messages.D2mmMessages.Menu');
+            INSERT INTO AuthItemChild VALUES ('D2messages.Read','D2messages.D2mmMessages.View');
 
 
-            INSERT INTO authitemchild VALUES ('D2messages.Write','D2messages.D2mmMessages.Menu');
-            INSERT INTO authitemchild VALUES ('D2messages.Write','D2messages.D2mmMessages.View');
-            INSERT INTO authitemchild VALUES ('D2messages.Write','D2messages.D2mmMessages.Create');
-            INSERT INTO authitemchild VALUES ('D2messages.Write','D2messages.D2mmMessages.Update');
+            INSERT INTO AuthItemChild VALUES ('D2messages.Write','D2messages.D2mmMessages.Menu');
+            INSERT INTO AuthItemChild VALUES ('D2messages.Write','D2messages.D2mmMessages.View');
+            INSERT INTO AuthItemChild VALUES ('D2messages.Write','D2messages.D2mmMessages.Create');
+            INSERT INTO AuthItemChild VALUES ('D2messages.Write','D2messages.D2mmMessages.Update');
 
-            INSERT INTO authitemchild VALUES ('D2messages.Delete','D2messages.D2mmMessages.Delete');
+            INSERT INTO AuthItemChild VALUES ('D2messages.Delete','D2messages.D2mmMessages.Delete');
 
         ");
     }
@@ -35,7 +35,7 @@ class m140915_081909_auth_D2mmMessages extends CDbMigration
     public function down()
     {
         $this->execute("
-            DELETE FROM `authitemchild` WHERE `parent` like 'D2messages.%';
+            DELETE FROM `AuthItemChild` WHERE `parent` like 'D2messages.%';
             DELETE FROM `AuthItem` WHERE `name` like 'D2messages.%';
         ");
     }
